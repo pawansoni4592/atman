@@ -1,0 +1,12 @@
+[project]
+name = "atman-api"
+version = "0.1.0"
+description = "Backend API for Atman"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi[standard]>=0.115,<1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
