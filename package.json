@@ -1,0 +1,13 @@
+{
+  "name": "atman",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --dir apps/web dev",
+    "dev:admin": "pnpm --dir apps/admin dev",
+    "dev:api": "cd apps/api && uv run fastapi dev app/main.py",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "packageManager": "pnpm@10"
+}
