@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg18-trixie
+    container_name: atman-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: atman
+    ports:
+      - "5432:5432"
+    volumes:
+      - atman-postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d atman"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  atman-postgres-data:
