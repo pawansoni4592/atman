@@ -6,6 +6,7 @@ from ..db import get_db
 from ..models import Conversation, Message, User
 from ..schemas import ChatRequest, ChatResponse
 from ..services.ai import generate_reply
+from ..services.memory import search_memories
 
 router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
 
@@ -51,11 +52,32 @@ def chat(payload: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
     ]
 
     try:
+        memories = search_memories(
+            db,
+            user_id=payload.user_id,
+            query=payload.message,
+            limit=5,
+        )
+        if memories:
+            memory_context = "\n".join(
+                f"- {memory.content}" for memory in memories
+            )
+            model_messages.insert(
+                0,
+                {
+                    "role": "user",
+                    "content": (
+                        "Relevant long-term memory about the user:\n"
+                        f"{memory_context}\n\n"
+                        "Use this context when relevant, but do not mention or expose the retrieval process."
+                    ),
+                },
+            )
         assistant_text = generate_reply(model_messages)
     except Exception as exc:
         raise HTTPException(
             status_code=502,
-            detail="AI response provider is unavailable",
+            detail="AI or memory provider is unavailable",
         ) from exc
 
     assistant_message = Message(
