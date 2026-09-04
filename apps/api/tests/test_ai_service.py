@@ -3,9 +3,14 @@ from unittest.mock import patch
 
 def test_generate_reply_uses_configured_model():
     fake_response = type("Response", (), {"output_text": "Hello from Atman"})()
-    fake_client = type("Client", (), {})()
-    fake_client.responses = type("Responses", (), {})()
-    fake_client.responses.create = lambda **kwargs: fake_response
+    captured: dict = {}
+
+    class FakeResponses:
+        def create(self, **kwargs):
+            captured.update(kwargs)
+            return fake_response
+
+    fake_client = type("Client", (), {"responses": FakeResponses()})()
 
     with patch("app.services.ai.OpenAI", return_value=fake_client), patch.dict(
         "os.environ",
@@ -14,5 +19,9 @@ def test_generate_reply_uses_configured_model():
     ):
         from app.services.ai import generate_reply
 
-        assert generate_reply([{"role": "user", "content": "Hello"}]) == "Hello from Atman"
-        assert fake_client.responses.create
+        messages = [{"role": "user", "content": "Hello"}]
+        assert generate_reply(messages) == "Hello from Atman"
+
+    assert captured["model"] == "test-model"
+    assert captured["input"] == messages
+    assert "instructions" in captured
