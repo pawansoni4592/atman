@@ -3,12 +3,18 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from .db import get_db
+from .routes import chat, conversations, memories, users
 
 app = FastAPI(
     title="Atman API",
     description="Backend API for the Atman personal AI mentor.",
     version="0.1.0",
 )
+
+app.include_router(users.router)
+app.include_router(conversations.router)
+app.include_router(memories.router)
+app.include_router(chat.router)
 
 
 @app.get("/health", tags=["system"])
